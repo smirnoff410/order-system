@@ -34,92 +34,111 @@ namespace StockService.Consumers
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
+            await Task.Run(() => ProcessMessages(stoppingToken), stoppingToken);
+        }
+        private async Task ProcessMessages(CancellationToken stoppingToken)
+        {
             while (!stoppingToken.IsCancellationRequested)
             {
                 try
                 {
+                    // Асинхронный Consume (не блокирует)
                     var consumeResult = _consumer.Consume(stoppingToken);
 
-                    using var scope = _serviceProvider.CreateScope();
-                    var dbContext = scope.ServiceProvider.GetRequiredService<StockServiceContext>();
-                    var kafkaProducer = scope.ServiceProvider.GetRequiredService<KafkaProducerService>();
-
-                    // Парсим событие
-                    var orderEvent = JsonSerializer.Deserialize<OrderCreatedEvent>(consumeResult.Message.Value);
-
-                    // Проверяем наличие товаров
-                    var canReserve = true;
-                    var failedItems = new List<FailedItemEvent>();
-
-                    foreach (var item in orderEvent.Items)
+                    if (consumeResult != null && consumeResult.Message != null)
                     {
-                        var stock = await dbContext.StockItems
-                            .FirstOrDefaultAsync(s => s.ProductId == item.ProductId);
-
-                        if (stock == null || stock.QuantityAvailable < item.Quantity)
-                        {
-                            canReserve = false;
-                            failedItems.Add(new FailedItemEvent
-                            {
-                                ProductId = item.ProductId,
-                                RequestedQuantity = item.Quantity,
-                                AvailableQuantity = stock?.QuantityAvailable ?? 0
-                            });
-                        }
+                        // Обработка сообщения
+                        await ProcessMessageAsync(consumeResult, stoppingToken);
+                        _consumer.Commit(consumeResult);
                     }
-
-                    if (canReserve)
-                    {
-                        // Резервируем товары
-                        foreach (var item in orderEvent.Items)
-                        {
-                            var stock = await dbContext.StockItems
-                                .FirstAsync(s => s.ProductId == item.ProductId);
-
-                            stock.QuantityAvailable -= item.Quantity;
-                            stock.Reservations.Add(new Reservation
-                            {
-                                Id = Guid.NewGuid(),
-                                OrderId = orderEvent.OrderId,
-                                ProductId = item.ProductId,
-                                Quantity = item.Quantity,
-                                ReservedAt = DateTime.UtcNow,
-                                IsActive = true
-                            });
-                        }
-
-                        await dbContext.SaveChangesAsync();
-
-                        // Публикуем успех
-                        await kafkaProducer.PublishStockReservedAsync(new StockReservedEvent
-                        {
-                            OrderId = orderEvent.OrderId,
-                            ReservedItems = orderEvent.Items.Select(i => new ReservedItemEvent
-                            {
-                                ProductId = i.ProductId,
-                                Quantity = i.Quantity
-                            }).ToList()
-                        });
-                    }
-                    else
-                    {
-                        // Публикуем неудачу
-                        await kafkaProducer.PublishStockFailedAsync(new StockFailedEvent
-                        {
-                            OrderId = orderEvent.OrderId,
-                            Reason = "Insufficient stock",
-                            FailedItems = failedItems
-                        });
-                    }
-
-                    // Commit после успешной обработки
-                    _consumer.Commit(consumeResult);
+                }
+                catch (OperationCanceledException)
+                {
+                    _logger.LogInformation("Consumer stopping");
+                    break;
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Error processing message");
+                    _logger.LogError(ex, "Error consuming message");
                     await Task.Delay(1000, stoppingToken);
                 }
+            }
+
+            _consumer.Close();
+        }
+        private async Task ProcessMessageAsync(ConsumeResult<string, string> consumeResult, CancellationToken stoppingToken)
+        {
+            using var scope = _serviceProvider.CreateScope();
+            var dbContext = scope.ServiceProvider.GetRequiredService<StockServiceContext>();
+            var kafkaProducer = scope.ServiceProvider.GetRequiredService<KafkaProducerService>();
+
+            // Парсим событие
+            var orderEvent = JsonSerializer.Deserialize<OrderCreatedEvent>(consumeResult.Message.Value);
+
+            // Проверяем наличие товаров
+            var canReserve = true;
+            var failedItems = new List<FailedItemEvent>();
+
+            foreach (var item in orderEvent.Items)
+            {
+                var stock = await dbContext.StockItems
+                    .Include(x => x.Reservations)
+                    .FirstOrDefaultAsync(s => s.ProductId == item.ProductId);
+
+                if (stock == null || stock.QuantityAvailable < item.Quantity)
+                {
+                    canReserve = false;
+                    failedItems.Add(new FailedItemEvent
+                    {
+                        ProductId = item.ProductId,
+                        RequestedQuantity = item.Quantity,
+                        AvailableQuantity = stock?.QuantityAvailable ?? 0
+                    });
+                }
+            }
+
+            if (canReserve)
+            {
+                // Резервируем товары
+                foreach (var item in orderEvent.Items)
+                {
+                    var stock = await dbContext.StockItems
+                        .FirstAsync(s => s.ProductId == item.ProductId);
+
+                    stock.QuantityAvailable -= item.Quantity;
+                    stock.Reservations.Add(new Reservation
+                    {
+                        Id = Guid.NewGuid(),
+                        OrderId = orderEvent.OrderId,
+                        ProductId = item.ProductId,
+                        Quantity = item.Quantity,
+                        ReservedAt = DateTime.UtcNow,
+                        IsActive = true
+                    });
+                }
+
+                await dbContext.SaveChangesAsync();
+
+                // Публикуем успех
+                await kafkaProducer.PublishStockReservedAsync(new StockReservedEvent
+                {
+                    OrderId = orderEvent.OrderId,
+                    ReservedItems = orderEvent.Items.Select(i => new ReservedItemEvent
+                    {
+                        ProductId = i.ProductId,
+                        Quantity = i.Quantity
+                    }).ToList()
+                });
+            }
+            else
+            {
+                // Публикуем неудачу
+                await kafkaProducer.PublishStockFailedAsync(new StockFailedEvent
+                {
+                    OrderId = orderEvent.OrderId,
+                    Reason = "Insufficient stock",
+                    FailedItems = failedItems
+                });
             }
         }
     }

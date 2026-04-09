@@ -4,12 +4,12 @@ using System.Text.Json;
 
 namespace NotificationService.Consumers
 {
-    public class OrderCompletedConsumer : BackgroundService
+    public class OrderFailedConsumer : BackgroundService
     {
-        private readonly ILogger<OrderCompletedConsumer> _logger;
+        private readonly ILogger<OrderFailedConsumer> _logger;
         private readonly IConsumer<string, string> _consumer;
 
-        public OrderCompletedConsumer(IConfiguration config, ILogger<OrderCompletedConsumer> logger)
+        public OrderFailedConsumer(IConfiguration config, ILogger<OrderFailedConsumer> logger)
         {
             _logger = logger;
 
@@ -23,7 +23,7 @@ namespace NotificationService.Consumers
             };
 
             _consumer = new ConsumerBuilder<string, string>(consumerConfig).Build();
-            _consumer.Subscribe("order-completed");
+            _consumer.Subscribe("order-failed");
         }
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
@@ -61,9 +61,9 @@ namespace NotificationService.Consumers
         }
         private async Task ProcessMessageAsync(ConsumeResult<string, string> consumeResult, CancellationToken stoppingToken)
         {
-            var orderEvent = JsonSerializer.Deserialize<OrderCompletedEvent>(consumeResult.Message.Value);
+            var orderEvent = JsonSerializer.Deserialize<OrderFailedEvent>(consumeResult.Message.Value);
 
-            _logger.LogInformation("✅ Order {OrderId} completed successfully!", orderEvent.OrderId);
+            _logger.LogInformation("✅ Order {OrderId} failed!", orderEvent.OrderId);
             // Можно отправить email через SMTP или Telegram бота
         }
     }

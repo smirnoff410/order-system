@@ -1,6 +1,7 @@
 using Confluent.Kafka;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.EntityFrameworkCore;
+using OrderService.Consumers;
 using OrderService.Persistence;
 using OrderService.Services;
 using SharedDatabaseHelper;
@@ -12,6 +13,7 @@ var builder = WebApplication.CreateBuilder(args);
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddControllers();
 
 var templateConnectionString = builder.Configuration.GetConnectionString("MasterConnection");
 if (templateConnectionString == null || string.IsNullOrWhiteSpace(templateConnectionString))
@@ -26,7 +28,10 @@ builder.Services.AddDbContext<OrderServiceContext>(options =>
 
 builder.Services.AddSingleton<KafkaProducerService>();
 
-builder.Services.AddControllers();
+builder.Services.AddHostedService<PaymentCompletedConsumer>();
+builder.Services.AddHostedService<PaymentFailedConsumer>();
+builder.Services.AddHostedService<StockFailedConsumer>();
+
 builder.WebHost.ConfigureKestrel(options =>
 {
     options.ListenAnyIP(5001, listenOptions =>
