@@ -40,6 +40,17 @@ builder.WebHost.ConfigureKestrel(options =>
     });
 });
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowReactApp", policy =>
+    {
+        policy.WithOrigins("http://localhost:3000")
+              .AllowAnyHeader()
+              .AllowAnyMethod()
+              .AllowCredentials();
+    });
+});
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -54,4 +65,5 @@ await DatabaseMigrationHelper.EnsureMigratedAsync<OrderServiceContext>(
     app.Services.GetRequiredService<ILogger<Program>>()
 );
 app.MapControllers();
+app.UseCors("AllowReactApp");
 app.Run();

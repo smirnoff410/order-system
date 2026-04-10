@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using OrderService.Models;
 using OrderService.Persistence;
 using OrderService.Requests;
@@ -19,7 +20,8 @@ namespace OrderService.Controllers
             _kafkaProducer = kafkaProducer;
         }
         [HttpPost]
-        public async Task<IActionResult> CreateOrder([FromBody] CreateOrderRequest request)
+        [Route("[action]")]
+        public async Task<IActionResult> Create([FromBody] CreateOrderRequest request)
         {
             // Начинаем транзакцию
             using var transaction = await _dbContext.Database.BeginTransactionAsync();
@@ -73,6 +75,29 @@ namespace OrderService.Controllers
                 await transaction.RollbackAsync();
                 throw;
             }
+        }
+
+        [HttpGet]
+        [Route("[action]")]
+        public async Task<IActionResult> Status(Guid orderId)
+        {
+            var order = await _dbContext.Orders.FirstOrDefaultAsync(x => x.Id == orderId);
+
+            if(order == null)
+            {
+                return BadRequest($"Order with id {orderId} not found");
+            }
+
+            return Ok(new { OrderId = order.Id, Status = order.Status });
+        }
+
+        [HttpGet]
+        [Route("[action]")]
+        public async Task<IActionResult> List()
+        {
+            var orders = await _dbContext.Orders.ToListAsync();
+
+            return Ok(orders.Select(x => new { OrderId = x.Id, x.Status, x.CreatedAt, x.CustomerId, x.TotalAmount }));
         }
     }
 }
