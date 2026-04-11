@@ -19,6 +19,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\Shared\SharedDatabaseHelper\SharedDatabaseHelper.csproj" />
     <ProjectReference Include="..\..\Shared\SharedKafkaEvents\SharedKafkaEvents.csproj" />
+    <ProjectReference Include="..\..\Shared\SharedLibrary\SharedLibrary.csproj" />
   </ItemGroup>
 
 </Project>

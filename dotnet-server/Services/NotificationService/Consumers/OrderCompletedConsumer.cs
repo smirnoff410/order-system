@@ -1,70 +1,27 @@
 ﻿using Confluent.Kafka;
 using SharedKafkaEvents.Events;
+using SharedLibrary;
 using System.Text.Json;
 
 namespace NotificationService.Consumers
 {
-    public class OrderCompletedConsumer : BackgroundService
+    public class OrderCompletedConsumer : SharedConsumer
     {
         private readonly ILogger<OrderCompletedConsumer> _logger;
-        private readonly IConsumer<string, string> _consumer;
 
-        public OrderCompletedConsumer(IConfiguration config, ILogger<OrderCompletedConsumer> logger)
+        public OrderCompletedConsumer(IConfiguration config, ILogger<OrderCompletedConsumer> logger) 
+            : base(config["Kafka:BootstrapServers"] ?? "empty_connect", "notification-service-group", "order-completed", logger)
         {
             _logger = logger;
-
-            var consumerConfig = new ConsumerConfig
-            {
-                BootstrapServers = config["Kafka:BootstrapServers"],
-                GroupId = "notification-service-group",
-                AutoOffsetReset = AutoOffsetReset.Earliest,
-                EnableAutoCommit = false, // Ручной commit для гарантии
-                EnableAutoOffsetStore = false
-            };
-
-            _consumer = new ConsumerBuilder<string, string>(consumerConfig).Build();
-            _consumer.Subscribe("order-completed");
         }
-        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
-        {
-            await Task.Run(() => ProcessMessages(stoppingToken), stoppingToken);
-        }
-        private async Task ProcessMessages(CancellationToken stoppingToken)
-        {
-            while (!stoppingToken.IsCancellationRequested)
-            {
-                try
-                {
-                    // Асинхронный Consume (не блокирует)
-                    var consumeResult = _consumer.Consume(stoppingToken);
 
-                    if (consumeResult != null && consumeResult.Message != null)
-                    {
-                        // Обработка сообщения
-                        await ProcessMessageAsync(consumeResult, stoppingToken);
-                        _consumer.Commit(consumeResult);
-                    }
-                }
-                catch (OperationCanceledException)
-                {
-                    _logger.LogInformation("Consumer stopping");
-                    break;
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "Error consuming message");
-                    await Task.Delay(1000, stoppingToken);
-                }
-            }
-
-            _consumer.Close();
-        }
-        private async Task ProcessMessageAsync(ConsumeResult<string, string> consumeResult, CancellationToken stoppingToken)
+        protected override Task ProcessMessageAsync(ConsumeResult<string, string> consumeResult, CancellationToken stoppingToken)
         {
             var orderEvent = JsonSerializer.Deserialize<OrderCompletedEvent>(consumeResult.Message.Value);
 
             _logger.LogInformation("✅ Order {OrderId} completed successfully!", orderEvent.OrderId);
-            // Можно отправить email через SMTP или Telegram бота
+
+            return Task.CompletedTask;
         }
     }
 }

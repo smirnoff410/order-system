@@ -14,16 +14,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddControllers();
 
-var templateConnectionString = builder.Configuration.GetConnectionString("MasterConnection");
-if (templateConnectionString == null || string.IsNullOrWhiteSpace(templateConnectionString))
-    throw new Exception("DB master connection string is empty");
-
-var dbConfiguration = new PostgreConfiguration(templateConnectionString);
-
-// Add services to the container.
-builder.Services.AddDbContext<StockServiceContext>(options =>
-    options.UseNpgsql(dbConfiguration.GetConnectionString())
-            .EnableSensitiveDataLogging());
+builder.Services.AddDatabase<StockServiceContext>(builder.Configuration);
 
 builder.Services.AddSingleton<KafkaProducerService>();
 builder.Services.AddHostedService<OrderCreatedConsumer>();
