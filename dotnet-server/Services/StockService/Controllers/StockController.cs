@@ -15,7 +15,16 @@ namespace StockService.Controllers
         {
             _context = context;
         }
+        [HttpGet]
+        [Route("[action]")]
+        public async Task<IActionResult> List()
+        {
+            var stockItems = await _context.StockItems.ToListAsync();
+
+            return Ok(stockItems.Select(x => new { x.ProductId, x.QuantityAvailable }));
+        }
         [HttpPost]
+        [Route("[action]")]
         public async Task<IActionResult> AddStockItem([FromBody] AddStockItemRequest dto)
         {
             var stockItem = await _context.StockItems.FirstOrDefaultAsync(x => x.ProductId == dto.ProductId);

@@ -95,7 +95,7 @@ namespace OrderService.Controllers
         [Route("[action]")]
         public async Task<IActionResult> List()
         {
-            var orders = await _dbContext.Orders.ToListAsync();
+            var orders = await _dbContext.Orders.OrderByDescending(x => x.CreatedAt).ToListAsync();
 
             return Ok(orders.Select(x => new { OrderId = x.Id, x.Status, x.CreatedAt, x.CustomerId, x.TotalAmount }));
         }

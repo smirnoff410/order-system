@@ -1,7 +1,5 @@
 using Microsoft.AspNetCore.Server.Kestrel.Core;
-using Microsoft.EntityFrameworkCore;
 using SharedDatabaseHelper;
-using SharedDatabaseHelper.Settings;
 using StockService.Consumers;
 using StockService.Persistence;
 using StockService.Services;
@@ -28,6 +26,16 @@ builder.WebHost.ConfigureKestrel(options =>
     });
 });
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowReactApp", policy =>
+    {
+        policy.AllowAnyOrigin()
+              .AllowAnyHeader()
+              .AllowAnyMethod();
+    });
+});
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -42,5 +50,5 @@ await DatabaseMigrationHelper.EnsureMigratedAsync<StockServiceContext>(
     app.Services.GetRequiredService<ILogger<Program>>()
 );
 app.MapControllers();
-
+app.UseCors("AllowReactApp");
 app.Run();

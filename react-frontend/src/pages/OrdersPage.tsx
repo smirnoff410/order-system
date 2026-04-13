@@ -99,8 +99,8 @@ export const OrdersPage: React.FC = () => {
 							<TableBody>
 								{paginatedOrders?.map(order => (
 									<TableRow key={order.orderId}>
-										<TableCell>{order.orderId.slice(0, 8)}...</TableCell>
-										<TableCell>{order.customerId.slice(0, 8)}...</TableCell>
+										<TableCell>{order.orderId}</TableCell>
+										<TableCell>{order.customerId}</TableCell>
 										<TableCell align='right'>
 											<Typography>{formatPrice(order.totalAmount)}</Typography>
 										</TableCell>

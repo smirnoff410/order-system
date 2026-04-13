@@ -13,7 +13,6 @@ export const useOrders = () => {
 	} = useQuery({
 		queryKey: ['orders'],
 		queryFn: orderApi.getOrders,
-		refetchInterval: 3000, // Автообновление каждые 3 секунды
 	})
 
 	// Создание заказа
