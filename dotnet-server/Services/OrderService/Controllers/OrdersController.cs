@@ -32,7 +32,8 @@ namespace OrderService.Controllers
                 var order = new Order
                 {
                     Id = Guid.NewGuid(),
-                    CustomerId = request.CustomerId,
+                    CustomerId = Guid.NewGuid(),
+                    CustomerName = request.CustomerName,
                     TotalAmount = request.Items.Sum(i => i.Quantity * i.UnitPrice),
                     Status = "Pending",
                     CreatedAt = DateTime.UtcNow,
@@ -97,7 +98,7 @@ namespace OrderService.Controllers
         {
             var orders = await _dbContext.Orders.OrderByDescending(x => x.CreatedAt).ToListAsync();
 
-            return Ok(orders.Select(x => new { OrderId = x.Id, x.Status, x.CreatedAt, x.CustomerId, x.TotalAmount }));
+            return Ok(orders.Select(x => new { OrderId = x.Id, x.Status, x.CreatedAt, x.CustomerId, x.CustomerName, x.TotalAmount }));
         }
     }
 }

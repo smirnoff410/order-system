@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using StockService.Persistence;
@@ -11,9 +12,11 @@ using StockService.Persistence;
 namespace StockService.Migrations
 {
     [DbContext(typeof(StockServiceContext))]
-    partial class StockServiceContextModelSnapshot : ModelSnapshot
+    [Migration("20260414074433_AddStockItemProductName")]
+    partial class AddStockItemProductName
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -49,7 +52,7 @@ namespace StockService.Migrations
 
                     b.HasIndex("StockItemId");
 
-                    b.ToTable("reservation", (string)null);
+                    b.ToTable("Reservations");
                 });
 
             modelBuilder.Entity("StockService.Models.StockItem", b =>
@@ -68,7 +71,7 @@ namespace StockService.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("stock_item", (string)null);
+                    b.ToTable("StockItems");
                 });
 
             modelBuilder.Entity("StockService.Models.Reservation", b =>

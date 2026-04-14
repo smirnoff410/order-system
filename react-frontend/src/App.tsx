@@ -9,6 +9,7 @@ import Typography from '@mui/material/Typography'
 import Button from '@mui/material/Button'
 import Container from '@mui/material/Container'
 
+import { ProductsPage } from './pages/ProductPage'
 import { OrdersPage } from './pages/OrdersPage'
 import { CreateOrderPage } from './pages/CreateOrderPage'
 import { StockPage } from './pages/StockPage'
@@ -27,6 +28,9 @@ function App() {
 							<Typography variant='h6' sx={{ flexGrow: 1 }}>
 								Order System
 							</Typography>
+							<Button color='inherit' component={Link} to='/'>
+								Products
+							</Button>
 							<Button color='inherit' component={Link} to='/orders'>
 								Orders
 							</Button>
@@ -40,6 +44,7 @@ function App() {
 					</AppBar>
 					<Container sx={{ mt: 4 }}>
 						<Routes>
+							<Route path='/' element={<ProductsPage />} />
 							<Route path='/orders' element={<OrdersPage />} />
 							<Route path='/create-order' element={<CreateOrderPage />} />
 							<Route path='/stock' element={<StockPage />} />

@@ -10,7 +10,7 @@ namespace PaymentService.Services
         private readonly IProducer<string, string> _producer;
         private readonly ILogger<KafkaProducerService> _logger;
         private const string PaymentCompletedTopic = "payment-completed";
-        private const string PaymentFailedTopic = "stock-failed";
+        private const string PaymentFailedTopic = "payment-failed";
 
         public KafkaProducerService(IConfiguration config, ILogger<KafkaProducerService> logger)
         {

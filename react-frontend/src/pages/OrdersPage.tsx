@@ -44,6 +44,10 @@ export const OrdersPage: React.FC = () => {
 				return 'success'
 			case 'Failed':
 				return 'error'
+			case 'StockFailed':
+				return 'error'
+			case 'PaymentFailed':
+				return 'error'
 			case 'Paid':
 				return 'success'
 			case 'StockReserved':
@@ -90,7 +94,7 @@ export const OrdersPage: React.FC = () => {
 							<TableHead>
 								<TableRow>
 									<TableCell>ID заказа</TableCell>
-									<TableCell>ID клиента</TableCell>
+									<TableCell>Имя клиента</TableCell>
 									<TableCell align='right'>Сумма</TableCell>
 									<TableCell>Статус</TableCell>
 									<TableCell>Дата создания</TableCell>
@@ -100,7 +104,7 @@ export const OrdersPage: React.FC = () => {
 								{paginatedOrders?.map(order => (
 									<TableRow key={order.orderId}>
 										<TableCell>{order.orderId}</TableCell>
-										<TableCell>{order.customerId}</TableCell>
+										<TableCell>{order.customerName}</TableCell>
 										<TableCell align='right'>
 											<Typography>{formatPrice(order.totalAmount)}</Typography>
 										</TableCell>

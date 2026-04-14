@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useOrders } from '../hooks/useOrders'
+import { useProducts } from '../hooks/useProducts'
 import {
 	Box,
 	Button,
@@ -10,6 +11,10 @@ import {
 	Typography,
 	IconButton,
 	Alert,
+	FormControl,
+	InputLabel,
+	Select,
+	MenuItem,
 } from '@mui/material'
 import AddIcon from '@mui/icons-material/Add'
 import DeleteIcon from '@mui/icons-material/Delete'
@@ -23,7 +28,8 @@ interface OrderItem {
 export const CreateOrderPage: React.FC = () => {
 	const navigate = useNavigate()
 	const { createOrder, isCreating } = useOrders()
-	const [customerId, setCustomerId] = useState('')
+	const { products } = useProducts()
+	const [customerName, setCustomerName] = useState('')
 	const [items, setItems] = useState<OrderItem[]>([
 		{ productId: '', quantity: 1, unitPrice: 0 },
 	])
@@ -51,10 +57,12 @@ export const CreateOrderPage: React.FC = () => {
 		e.preventDefault()
 		setError(null)
 
-		if (!customerId) {
-			setError('Customer ID is required')
+		if (!customerName) {
+			setError('Customer Name is required')
 			return
 		}
+
+		console.log(items)
 
 		if (
 			items.some(
@@ -65,9 +73,11 @@ export const CreateOrderPage: React.FC = () => {
 			return
 		}
 
+		console.log(products)
+
 		createOrder(
 			{
-				customerId,
+				customerName,
 				items: items.map(item => ({
 					productId: item.productId,
 					quantity: item.quantity,
@@ -101,12 +111,11 @@ export const CreateOrderPage: React.FC = () => {
 				<form onSubmit={handleSubmit}>
 					<TextField
 						fullWidth
-						label='Customer ID'
-						value={customerId}
-						onChange={e => setCustomerId(e.target.value)}
+						label='Customer Name'
+						value={customerName}
+						onChange={e => setCustomerName(e.target.value)}
 						margin='normal'
 						required
-						helperText='UUID format: 3fa85f64-5717-4562-b3fc-2c963f66afa6'
 					/>
 
 					<Typography variant='h6' sx={{ mt: 3, mb: 2 }}>
@@ -115,13 +124,23 @@ export const CreateOrderPage: React.FC = () => {
 
 					{items.map((item, index) => (
 						<Box key={index} sx={{ display: 'flex', gap: 2, mb: 2 }}>
-							<TextField
-								label='Product ID'
-								value={item.productId}
-								onChange={e => updateItem(index, 'productId', e.target.value)}
-								required
-								sx={{ flex: 2 }}
-							/>
+							<FormControl required sx={{ flex: 2 }}>
+								<InputLabel>Product</InputLabel>
+								<Select
+									value={item.productId}
+									label='Product'
+									onChange={e => updateItem(index, 'productId', e.target.value)}
+								>
+									<MenuItem value='' disabled>
+										Select a product
+									</MenuItem>
+									{products?.map(product => (
+										<MenuItem key={product.id} value={product.id}>
+											{product.name}
+										</MenuItem>
+									))}
+								</Select>
+							</FormControl>
 							<TextField
 								label='Quantity'
 								type='number'

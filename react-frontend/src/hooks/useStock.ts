@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { stockApi } from '../services/stockApi'
-import { StockItem } from '../types/order'
+import { AddStockItemRequest, StockItem } from '../types/order'
 
 export const useStock = () => {
 	const queryClient = useQueryClient()
@@ -18,13 +18,8 @@ export const useStock = () => {
 
 	// Обновление количества товара
 	const updateStockMutation = useMutation({
-		mutationFn: ({
-			productId,
-			quantity,
-		}: {
-			productId: string
-			quantity: number
-		}) => stockApi.updateStockQuantity(productId, quantity),
+		mutationFn: (request: AddStockItemRequest) =>
+			stockApi.updateStockQuantity(request),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ['stock'] })
 		},

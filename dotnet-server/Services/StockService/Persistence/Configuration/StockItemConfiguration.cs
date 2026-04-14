@@ -8,6 +8,7 @@ namespace StockService.Persistence.Configuration
     {
         public void Configure(EntityTypeBuilder<StockItem> builder)
         {
+            builder.ToTable("stock_item");
             builder.Property(x => x.Id)
                 .ValueGeneratedNever();
 

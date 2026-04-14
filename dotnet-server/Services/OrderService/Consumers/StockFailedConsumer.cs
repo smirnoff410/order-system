@@ -29,7 +29,7 @@ namespace OrderService.Consumers
             var order = await dbContext.Orders.FirstOrDefaultAsync(x => x.Id == stockEvent.OrderId);
             if (order != null)
             {
-                order.Status = "Failed";
+                order.Status = "StockFailed";
                 order.UpdatedAt = DateTime.UtcNow;
                 await dbContext.SaveChangesAsync();
             }

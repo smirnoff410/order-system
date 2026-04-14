@@ -1,5 +1,5 @@
 import axios from 'axios'
-import { StockItem } from '../types/order'
+import { StockItem, AddStockItemRequest } from '../types/order'
 
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000'
 
@@ -20,9 +20,9 @@ export const stockApi = {
 
 	// Обновить количество товара (для админа)
 	updateStockQuantity: async (
-		productId: string,
-		quantity: number,
-	): Promise<void> => {
-		await stockApiClient.post(`/stock/addStockItem`, { quantity })
+		request: AddStockItemRequest,
+	): Promise<StockItem> => {
+		const response = await stockApiClient.post(`/stock/addItem`, request)
+		return response.data
 	},
 }

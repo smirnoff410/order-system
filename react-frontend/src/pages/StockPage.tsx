@@ -69,17 +69,6 @@ export const StockPage: React.FC = () => {
 		setEditDialogOpen(true)
 	}
 
-	// Сохранить изменения
-	const handleSaveQuantity = () => {
-		if (selectedProduct && newQuantity >= 0) {
-			updateStock({
-				productId: selectedProduct.id,
-				quantity: newQuantity,
-			})
-			setEditDialogOpen(false)
-		}
-	}
-
 	if (isLoading) {
 		return (
 			<Box>
@@ -159,7 +148,7 @@ export const StockPage: React.FC = () => {
 						<Table>
 							<TableHead>
 								<TableRow>
-									<TableCell>ID товара</TableCell>
+									<TableCell>Имя товара</TableCell>
 									<TableCell align='center'>Количество</TableCell>
 									<TableCell align='center'>Статус</TableCell>
 									<TableCell align='center'>Действия</TableCell>
@@ -171,7 +160,7 @@ export const StockPage: React.FC = () => {
 									return (
 										<TableRow key={item.id}>
 											<TableCell>
-												<Typography>{item.productId}</Typography>
+												<Typography>{item.productName}</Typography>
 											</TableCell>
 											<TableCell align='center'>
 												<Typography>{item.quantityAvailable}</Typography>

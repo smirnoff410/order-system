@@ -11,6 +11,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddControllers();
+builder.Services.AddHealthChecks();
 
 builder.Services.AddDatabase<StockServiceContext>(builder.Configuration);
 
@@ -51,4 +52,5 @@ await DatabaseMigrationHelper.EnsureMigratedAsync<StockServiceContext>(
 );
 app.MapControllers();
 app.UseCors("AllowReactApp");
+app.MapHealthChecks("/health");
 app.Run();

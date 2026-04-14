@@ -1,37 +1,26 @@
-using Confluent.Kafka;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
-using Microsoft.EntityFrameworkCore;
-using OrderService.Consumers;
-using OrderService.Persistence;
-using OrderService.Services;
+using ProductService.Persistence;
 using SharedDatabaseHelper;
-using SharedDatabaseHelper.Settings;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
+
+builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-builder.Services.AddControllers();
 builder.Services.AddHealthChecks();
 
-builder.Services.AddDatabase<OrderServiceContext>(builder.Configuration);
-
-builder.Services.AddSingleton<KafkaProducerService>();
-
-builder.Services.AddHostedService<PaymentCompletedConsumer>();
-builder.Services.AddHostedService<PaymentFailedConsumer>();
-builder.Services.AddHostedService<StockFailedConsumer>();
+builder.Services.AddDatabase<ProductServiceContext>(builder.Configuration);
 
 builder.WebHost.ConfigureKestrel(options =>
 {
-    options.ListenAnyIP(5001, listenOptions =>
+    options.ListenAnyIP(5005, listenOptions =>
     {
         listenOptions.Protocols = HttpProtocols.Http1;
     });
 });
-
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowReactApp", policy =>
@@ -50,11 +39,11 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
-
-await DatabaseMigrationHelper.EnsureMigratedAsync<OrderServiceContext>(
+await DatabaseMigrationHelper.EnsureMigratedAsync<ProductServiceContext>(
     app.Services,
     app.Services.GetRequiredService<ILogger<Program>>()
 );
+
 app.MapControllers();
 app.UseCors("AllowReactApp");
 app.MapHealthChecks("/health");

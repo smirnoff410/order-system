@@ -2,7 +2,7 @@
 {
     public class CreateOrderRequest
     {
-        public Guid CustomerId { get; set; }
+        public string CustomerName { get; set; }
         public List<CreateOrderItemRequest> Items { get; set; }
     }
     public class CreateOrderItemRequest

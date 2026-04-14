@@ -6,13 +6,22 @@ export interface OrderItem {
 }
 
 export interface CreateOrderRequest {
-	customerId: string
+	customerName: string
 	items: OrderItem[]
+}
+export interface CreateProductRequest {
+	id: string
+	name: string
+}
+export interface AddStockItemRequest {
+	productId: string
+	productName: string
+	quantity: number
 }
 
 export interface Order {
 	orderId: string
-	customerId: string
+	customerName: string
 	totalAmount: number
 	status: 'Pending' | 'StockReserved' | 'Paid' | 'Failed' | 'Completed'
 	failureReason?: string
@@ -45,6 +54,11 @@ export interface Reservation {
 	quantity: number
 	reservedAt: string
 	isActive: boolean
+}
+
+export interface Product {
+	id: string
+	name: string
 }
 
 // Типы ответов API
