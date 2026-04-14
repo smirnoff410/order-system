@@ -1,8 +1,14 @@
 using Microsoft.AspNetCore.Server.Kestrel.Core;
 using PaymentService.Consumers;
 using PaymentService.Services;
+using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Host.UseSerilog((context, services, configuration) => configuration
+        .ReadFrom.Configuration(context.Configuration) // Read from appsettings.json
+        .ReadFrom.Services(services)
+        .Enrich.FromLogContext());
 
 // Add services to the container.
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
@@ -28,6 +34,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+app.UseSerilogRequestLogging();
 app.MapHealthChecks("/health");
 
 app.Run();

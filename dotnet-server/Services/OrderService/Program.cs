@@ -4,10 +4,16 @@ using Microsoft.EntityFrameworkCore;
 using OrderService.Consumers;
 using OrderService.Persistence;
 using OrderService.Services;
+using Serilog;
 using SharedDatabaseHelper;
 using SharedDatabaseHelper.Settings;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Host.UseSerilog((context, services, configuration) => configuration
+        .ReadFrom.Configuration(context.Configuration) // Read from appsettings.json
+        .ReadFrom.Services(services)
+        .Enrich.FromLogContext());
 
 // Add services to the container.
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
@@ -55,6 +61,8 @@ await DatabaseMigrationHelper.EnsureMigratedAsync<OrderServiceContext>(
     app.Services,
     app.Services.GetRequiredService<ILogger<Program>>()
 );
+
+app.UseSerilogRequestLogging();
 app.MapControllers();
 app.UseCors("AllowReactApp");
 app.MapHealthChecks("/health");

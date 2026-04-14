@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Server.Kestrel.Core;
+using Serilog;
 using SharedDatabaseHelper;
 using StockService.Consumers;
 using StockService.Persistence;
@@ -6,6 +7,10 @@ using StockService.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Host.UseSerilog((context, services, configuration) => configuration
+        .ReadFrom.Configuration(context.Configuration) // Read from appsettings.json
+        .ReadFrom.Services(services)
+        .Enrich.FromLogContext());
 // Add services to the container.
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
@@ -50,6 +55,8 @@ await DatabaseMigrationHelper.EnsureMigratedAsync<StockServiceContext>(
     app.Services,
     app.Services.GetRequiredService<ILogger<Program>>()
 );
+
+app.UseSerilogRequestLogging();
 app.MapControllers();
 app.UseCors("AllowReactApp");
 app.MapHealthChecks("/health");

@@ -1,9 +1,14 @@
 using Microsoft.AspNetCore.Server.Kestrel.Core;
 using ProductService.Persistence;
+using Serilog;
 using SharedDatabaseHelper;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Host.UseSerilog((context, services, configuration) => configuration
+        .ReadFrom.Configuration(context.Configuration) // Read from appsettings.json
+        .ReadFrom.Services(services)
+        .Enrich.FromLogContext());
 // Add services to the container.
 
 builder.Services.AddControllers();
@@ -43,6 +48,8 @@ await DatabaseMigrationHelper.EnsureMigratedAsync<ProductServiceContext>(
     app.Services,
     app.Services.GetRequiredService<ILogger<Program>>()
 );
+
+app.UseSerilogRequestLogging();
 
 app.MapControllers();
 app.UseCors("AllowReactApp");

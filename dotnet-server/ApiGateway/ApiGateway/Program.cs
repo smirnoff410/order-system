@@ -1,4 +1,6 @@
+using Serilog;
 using Yarp.ReverseProxy.Configuration;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -8,6 +10,11 @@ var proxyConfig = builder.Configuration.GetSection("ReverseProxy");
 // 2. Добавляем Reverse Proxy (YARP)
 builder.Services.AddReverseProxy()
     .LoadFromConfig(proxyConfig);
+
+builder.Host.UseSerilog((context, services, configuration) => configuration
+        .ReadFrom.Configuration(context.Configuration) // Read from appsettings.json
+        .ReadFrom.Services(services)
+        .Enrich.FromLogContext());
 
 // 3. Добавляем CORS для React приложения
 builder.Services.AddCors(options =>
@@ -59,6 +66,8 @@ app.UseExceptionHandler(errorApp =>
 
 // 9. Запускаем Reverse Proxy
 app.MapReverseProxy();
+
+app.UseSerilogRequestLogging();
 
 // 10. Health check endpoint
 app.MapGet("/health", () => Results.Ok(new { status = "healthy", timestamp = DateTime.UtcNow }));
