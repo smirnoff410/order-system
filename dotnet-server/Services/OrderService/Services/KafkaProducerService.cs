@@ -1,4 +1,5 @@
 ﻿using Confluent.Kafka;
+using SharedKafkaEvents;
 using SharedKafkaEvents.Events;
 using System.Text;
 using System.Text.Json;
@@ -9,10 +10,6 @@ namespace OrderService.Services
     {
         private readonly IProducer<string, string> _producer;
         private readonly ILogger<KafkaProducerService> _logger;
-        private const string OrderCreatedTopic = "order-created";
-        private const string OrderCompletedTopic = "order-completed";
-        private const string OrderFailedTopic = "order-failed";
-
         public KafkaProducerService(IConfiguration config, ILogger<KafkaProducerService> logger)
         {
             _logger = logger;
@@ -44,7 +41,7 @@ namespace OrderService.Services
                 }
                 };
 
-                var result = await _producer.ProduceAsync(OrderCreatedTopic, message);
+                var result = await _producer.ProduceAsync(KafkaTopics.OrderCreated, message);
                 _logger.LogInformation("Published OrderCreated: {OrderId} to partition {Partition}, offset {Offset}",
                     orderEvent.OrderId, result.Partition, result.Offset);
             }
@@ -71,7 +68,7 @@ namespace OrderService.Services
                 }
                 };
 
-                var result = await _producer.ProduceAsync(OrderCompletedTopic, message);
+                var result = await _producer.ProduceAsync(KafkaTopics.OrderCompleted, message);
                 _logger.LogInformation("Published OrderCompleted: {OrderId} to partition {Partition}, offset {Offset}",
                     orderEvent.OrderId, result.Partition, result.Offset);
             }
@@ -98,7 +95,7 @@ namespace OrderService.Services
                 }
                 };
 
-                var result = await _producer.ProduceAsync(OrderFailedTopic, message);
+                var result = await _producer.ProduceAsync(KafkaTopics.OrderFailed, message);
                 _logger.LogInformation("Published OrderFailed: {OrderId} to partition {Partition}, offset {Offset}",
                     orderEvent.OrderId, result.Partition, result.Offset);
             }

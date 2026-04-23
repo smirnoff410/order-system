@@ -1,4 +1,5 @@
 ﻿using Confluent.Kafka;
+using SharedKafkaEvents;
 using SharedKafkaEvents.Events;
 using System.Text;
 using System.Text.Json;
@@ -9,9 +10,6 @@ namespace PaymentService.Services
     {
         private readonly IProducer<string, string> _producer;
         private readonly ILogger<KafkaProducerService> _logger;
-        private const string PaymentCompletedTopic = "payment-completed";
-        private const string PaymentFailedTopic = "payment-failed";
-
         public KafkaProducerService(IConfiguration config, ILogger<KafkaProducerService> logger)
         {
             _logger = logger;
@@ -43,7 +41,7 @@ namespace PaymentService.Services
                 }
                 };
 
-                var result = await _producer.ProduceAsync(PaymentCompletedTopic, message);
+                var result = await _producer.ProduceAsync(KafkaTopics.PaymentCompleted, message);
                 _logger.LogInformation("Published PaymentCompleted: {OrderId} to partition {Partition}, offset {Offset}",
                     paymentCompletedEvent.OrderId, result.Partition, result.Offset);
             }
@@ -70,7 +68,7 @@ namespace PaymentService.Services
                 }
                 };
 
-                var result = await _producer.ProduceAsync(PaymentFailedTopic, message);
+                var result = await _producer.ProduceAsync(KafkaTopics.PaymentFailed, message);
                 _logger.LogInformation("Published PaymentFailed: {OrderId} to partition {Partition}, offset {Offset}",
                     paymentEvent.OrderId, result.Partition, result.Offset);
             }

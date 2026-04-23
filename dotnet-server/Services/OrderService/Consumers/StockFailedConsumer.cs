@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using OrderService.Persistence;
 using OrderService.Services;
+using SharedKafkaEvents;
 using SharedKafkaEvents.Events;
 using SharedLibrary;
 using System.Text.Json;
@@ -13,7 +14,11 @@ namespace OrderService.Consumers
         private readonly IServiceProvider _serviceProvider;
 
         public StockFailedConsumer(IServiceProvider serviceProvider, IConfiguration config, ILogger<SharedConsumer> logger) 
-            : base(config["Kafka:BootstrapServers"] ?? "empty_connect", "order-service-group", "stock-failed", logger)
+            : base(
+                config["Kafka:BootstrapServers"] ?? "empty_connect",
+                KafkaConsumerGroups.OrderService,
+                KafkaTopics.StockFailed,
+                logger)
         {
             _serviceProvider = serviceProvider;
         }

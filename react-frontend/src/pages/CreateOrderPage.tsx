@@ -62,8 +62,6 @@ export const CreateOrderPage: React.FC = () => {
 			return
 		}
 
-		console.log(items)
-
 		if (
 			items.some(
 				item => !item.productId || item.quantity <= 0 || item.unitPrice <= 0,

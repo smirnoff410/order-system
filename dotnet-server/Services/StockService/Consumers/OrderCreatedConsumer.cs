@@ -1,5 +1,6 @@
 ﻿using Confluent.Kafka;
 using Microsoft.EntityFrameworkCore;
+using SharedKafkaEvents;
 using SharedKafkaEvents.Events;
 using SharedLibrary;
 using StockService.Models;
@@ -14,7 +15,11 @@ namespace StockService.Consumers
         private readonly IServiceProvider _serviceProvider;
 
         public OrderCreatedConsumer(IServiceProvider serviceProvider, IConfiguration config, ILogger<SharedConsumer> logger) 
-            : base(config["Kafka:BootstrapServers"] ?? "empty_connect", "stock-service-group", "order-created", logger)
+            : base(
+                config["Kafka:BootstrapServers"] ?? "empty_connect",
+                KafkaConsumerGroups.StockService,
+                KafkaTopics.OrderCreated,
+                logger)
         {
             _serviceProvider = serviceProvider;
         }

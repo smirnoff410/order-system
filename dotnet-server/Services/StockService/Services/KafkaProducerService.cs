@@ -1,4 +1,5 @@
 ﻿using Confluent.Kafka;
+using SharedKafkaEvents;
 using SharedKafkaEvents.Events;
 using System.Text;
 using System.Text.Json;
@@ -9,9 +10,6 @@ namespace StockService.Services
     {
         private readonly IProducer<string, string> _producer;
         private readonly ILogger<KafkaProducerService> _logger;
-        private const string StockReservedTopic = "stock-reserved";
-        private const string StockFailedTopic = "stock-failed";
-
         public KafkaProducerService(IConfiguration config, ILogger<KafkaProducerService> logger)
         {
             _logger = logger;
@@ -43,7 +41,7 @@ namespace StockService.Services
                 }
                 };
 
-                var result = await _producer.ProduceAsync(StockReservedTopic, message);
+                var result = await _producer.ProduceAsync(KafkaTopics.StockReserved, message);
                 _logger.LogInformation("Published StockReserved: {OrderId} to partition {Partition}, offset {Offset}",
                     stockReservedEvent.OrderId, result.Partition, result.Offset);
             }
@@ -70,7 +68,7 @@ namespace StockService.Services
                 }
                 };
 
-                var result = await _producer.ProduceAsync(StockFailedTopic, message);
+                var result = await _producer.ProduceAsync(KafkaTopics.StockFailed, message);
                 _logger.LogInformation("Published StockFailed: {OrderId} to partition {Partition}, offset {Offset}",
                     stockFailedEvent.OrderId, result.Partition, result.Offset);
             }

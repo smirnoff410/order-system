@@ -1,4 +1,5 @@
 ﻿using Confluent.Kafka;
+using SharedKafkaEvents;
 using SharedKafkaEvents.Events;
 using SharedLibrary;
 using System.Text.Json;
@@ -10,7 +11,11 @@ namespace NotificationService.Consumers
         private readonly ILogger<OrderCompletedConsumer> _logger;
 
         public OrderCompletedConsumer(IConfiguration config, ILogger<OrderCompletedConsumer> logger) 
-            : base(config["Kafka:BootstrapServers"] ?? "empty_connect", "notification-service-group", "order-completed", logger)
+            : base(
+                config["Kafka:BootstrapServers"] ?? "empty_connect",
+                KafkaConsumerGroups.NotificationService,
+                KafkaTopics.OrderCompleted,
+                logger)
         {
             _logger = logger;
         }

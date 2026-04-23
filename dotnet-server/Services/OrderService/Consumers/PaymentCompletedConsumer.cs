@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using OrderService.Persistence;
 using OrderService.Services;
+using SharedKafkaEvents;
 using SharedKafkaEvents.Events;
 using SharedLibrary;
 using System.Text.Json;
@@ -14,7 +15,11 @@ namespace OrderService.Consumers
         private readonly ILogger<PaymentCompletedConsumer> _logger;
 
         public PaymentCompletedConsumer(IServiceProvider serviceProvider, IConfiguration config, ILogger<PaymentCompletedConsumer> logger) 
-            : base(config["Kafka:BootstrapServers"] ?? "empty_connect", "order-service-group", "payment-completed", logger)
+            : base(
+                config["Kafka:BootstrapServers"] ?? "empty_connect",
+                KafkaConsumerGroups.OrderService,
+                KafkaTopics.PaymentCompleted,
+                logger)
         {
             _serviceProvider = serviceProvider;
             _logger = logger;
